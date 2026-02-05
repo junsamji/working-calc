@@ -1,0 +1,5 @@
+{
+  "name": "Korean Work Hours Calculator",
+  "description": "A professional work hour management tool that calculates monthly average working hours, handles Korean holidays, and supports local file storage for data persistence.",
+  "requestFramePermissions": []
+}
