@@ -260,6 +260,10 @@ const App: React.FC = () => {
   const [alertModal, setAlertModal] = useState<{ show: boolean, message: string }>({ show: false, message: '' });
   const [isSyncing, setIsSyncing] = useState(false);
   
+  // 연/월 선택 모달 상태
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [pickerYear, setPickerYear] = useState(currentYear);
+
   // 인증 및 유저 코드 상태
   const [userSecretCode, setUserSecretCode] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -487,6 +491,17 @@ const App: React.FC = () => {
     setModalData(prev => ({ ...prev, [field]: timeStr }));
   };
 
+  const handleSelectMonth = (year: number, month: number) => {
+    setCurrentYear(year);
+    setCurrentMonth(month);
+    setShowMonthPicker(false);
+  };
+
+  const openMonthPicker = () => {
+    setPickerYear(currentYear);
+    setShowMonthPicker(true);
+  };
+
   const renderCalendar = () => {
     const firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
     const lastDay = new Date(currentYear, currentMonth, 0).getDate();
@@ -538,9 +553,6 @@ const App: React.FC = () => {
             </span>
           </div>
         </div>
-        <div className="flex gap-2 invisible md:visible">
-          {/* 헤더의 버튼 공간을 비워두거나 제거합니다. (액션 바로 이동) */}
-        </div>
       </header>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
@@ -553,21 +565,23 @@ const App: React.FC = () => {
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="flex items-center bg-white rounded-lg border shadow-sm px-2">
-            <select value={currentYear} onChange={(e) => setCurrentYear(Number(e.target.value))} className="bg-transparent px-2 py-2 text-lg font-bold outline-none cursor-pointer">
-              {[2024, 2025, 2026, 2027, 2028].map(y => <option key={y} value={y}>{y}년</option>)}
-            </select>
-            <select value={currentMonth} onChange={(e) => setCurrentMonth(Number(e.target.value))} className="bg-transparent px-2 py-2 text-lg font-bold outline-none cursor-pointer">
-              {Array.from({length: 12}, (_, i) => i + 1).map(m => <option key={m} value={m}>{m}월</option>)}
-            </select>
-          </div>
-          <div className="flex items-center bg-white rounded-lg border shadow-sm overflow-hidden">
-            <button onClick={handlePrevMonth} className="px-4 py-2 hover:bg-gray-50 border-r text-gray-500"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg></button>
-            <button onClick={handleNextMonth} className="px-4 py-2 hover:bg-gray-50 text-gray-500"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg></button>
+          {/* 연/월 선택 영역: 버튼 형태로 변경 */}
+          <div className="flex items-center bg-white rounded-lg border shadow-sm px-1.5 h-12 overflow-hidden">
+            <button 
+              onClick={openMonthPicker}
+              className="flex items-center gap-2 px-3 py-2 text-lg font-bold text-gray-700 hover:bg-gray-50 transition-all rounded-md active:scale-95 whitespace-nowrap"
+            >
+              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              {currentYear}년 {currentMonth}월
+            </button>
+            <div className="w-[1px] h-6 bg-gray-100 mx-1"></div>
+            <div className="flex items-center">
+              <button onClick={handlePrevMonth} className="p-2 hover:bg-gray-50 text-gray-400 hover:text-blue-500 transition-all active:scale-90"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg></button>
+              <button onClick={handleNextMonth} className="p-2 hover:bg-gray-50 text-gray-400 hover:text-blue-500 transition-all active:scale-90"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg></button>
+            </div>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {/* 클라우드 액션 버튼이 파일 버튼 위치로 이동됨 */}
           <button onClick={() => requestCloudAction('load')} disabled={isSyncing} className="px-6 py-2.5 bg-indigo-50 text-indigo-700 rounded-lg font-bold hover:bg-indigo-100 transition-all flex items-center gap-2 border border-indigo-200 disabled:opacity-50">
             {isSyncing ? '...' : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" /></svg>}
             불러오기
@@ -576,8 +590,6 @@ const App: React.FC = () => {
             {isSyncing ? '...' : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>}
             백업하기
           </button>
-
-          {/* 기존 파일 버튼은 기능만 유지하고 숨김 처리 */}
           <button onClick={() => fileInputRef.current?.click()} className="hidden">파일 불러오기</button>
           <button onClick={handleExportFile} className="hidden">파일 내보내기</button>
         </div>
@@ -592,9 +604,42 @@ const App: React.FC = () => {
         <div className="grid grid-cols-7">{renderCalendar()}</div>
       </div>
 
+      {/* 연/월 선택 팝업 (모바일 친화적) */}
+      {showMonthPicker && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <button onClick={() => setPickerYear(y => y - 1)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-blue-500 transition-all"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg></button>
+                <span className="text-2xl font-black text-gray-800 tracking-tighter w-20 text-center">{pickerYear}년</span>
+                <button onClick={() => setPickerYear(y => y + 1)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-blue-500 transition-all"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg></button>
+              </div>
+              <button onClick={() => setShowMonthPicker(false)} className="p-2 text-gray-300 hover:text-gray-500 transition-all"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
+            </div>
+            <div className="p-6 grid grid-cols-3 gap-3 bg-gray-50/30">
+              {Array.from({length: 12}, (_, i) => i + 1).map((m) => (
+                <button 
+                  key={m} 
+                  onClick={() => handleSelectMonth(pickerYear, m)}
+                  className={`py-4 text-lg font-bold rounded-2xl transition-all border-2 ${currentYear === pickerYear && currentMonth === m ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100 scale-105' : 'bg-white text-gray-600 border-white hover:border-blue-200 hover:bg-blue-50/50'}`}
+                >
+                  {m}월
+                </button>
+              ))}
+            </div>
+            <div className="p-4 bg-white text-center">
+              <button onClick={() => {
+                const now = new Date();
+                handleSelectMonth(now.getFullYear(), now.getMonth() + 1);
+              }} className="text-sm font-bold text-blue-500 hover:text-blue-700 underline underline-offset-4">이번달로 바로가기</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 알림 모달 */}
       {alertModal.show && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[110] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-sm shadow-2xl p-6 text-center">
             <p className="text-gray-800 font-bold mb-6 whitespace-pre-line leading-relaxed">{alertModal.message}</p>
             <button onClick={() => setAlertModal({ show: false, message: '' })} className="w-full py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-all">확인</button>
@@ -604,7 +649,7 @@ const App: React.FC = () => {
 
       {/* 유저 고유 코드 입력 모달 */}
       {showAuthModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[120] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden p-8 space-y-6">
             <div className="text-center space-y-2">
               <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -644,7 +689,7 @@ const App: React.FC = () => {
 
       {/* 업무 기록 수정 모달 */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-8 border-b flex justify-between items-center bg-white">
               <h2 className="text-2xl font-bold text-gray-800 tracking-tight">{selectedDate} 기록</h2>
