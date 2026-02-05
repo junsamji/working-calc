@@ -538,23 +538,16 @@ const App: React.FC = () => {
             </span>
           </div>
         </div>
-        <div className="flex gap-2">
-           <button onClick={() => requestCloudAction('load')} disabled={isSyncing} className="px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg font-bold hover:bg-indigo-100 transition-all flex items-center gap-2 border border-indigo-200 disabled:opacity-50">
-            {isSyncing ? '...' : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" /></svg>}
-            불러오기
-          </button>
-          <button onClick={() => requestCloudAction('save')} disabled={isSyncing} className="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-100 disabled:opacity-50">
-            {isSyncing ? '...' : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>}
-            백업하기
-          </button>
+        <div className="flex gap-2 invisible md:visible">
+          {/* 헤더의 버튼 공간을 비워두거나 제거합니다. (액션 바로 이동) */}
         </div>
       </header>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <div className="bg-white p-5 rounded-xl border shadow-sm flex flex-col"><span className="text-xs text-gray-400 font-bold mb-1 uppercase tracking-wider">최소 필수 근무시간</span><span className="text-xl font-bold text-gray-800 font-mono">{Math.floor(stats.totalRequiredSeconds / 3600)}H</span></div>
-        <div className="bg-white p-5 rounded-xl border shadow-sm flex flex-col ring-1 ring-blue-100"><span className="text-xs text-blue-400 font-bold mb-1 uppercase tracking-wider">현재 총 근무시간</span><span className="text-xl font-bold text-blue-600 font-mono">{formatSeconds(stats.totalWorkedSeconds)}</span></div>
-        <div className="bg-white p-5 rounded-xl border shadow-sm flex flex-col"><span className="text-xs text-green-500 font-bold mb-1 uppercase tracking-wider">해당 월 총 근무일수</span><span className="text-xl font-bold text-green-600">{stats.totalWorkingDays}일</span></div>
+        <div className="bg-white p-5 rounded-xl border shadow-sm flex flex-col"><span className="text-xs text-green-500 font-bold mb-1 uppercase tracking-wider">총 근무일수</span><span className="text-xl font-bold text-green-600">{stats.totalWorkingDays}일</span></div>
         <div className="bg-white p-5 rounded-xl border shadow-sm flex flex-col"><span className="text-xs text-orange-400 font-bold mb-1 uppercase tracking-wider">남은 근무일수</span><span className="text-xl font-bold text-orange-600">{stats.remainingWorkingDays}일</span></div>
+        <div className="bg-white p-5 rounded-xl border shadow-sm flex flex-col"><span className="text-xs text-gray-400 font-bold mb-1 uppercase tracking-wider">필수 근무시간</span><span className="text-xl font-bold text-gray-800 font-mono">{Math.floor(stats.totalRequiredSeconds / 3600)}H</span></div>
+        <div className="bg-white p-5 rounded-xl border shadow-sm flex flex-col ring-1 ring-blue-100"><span className="text-xs text-blue-400 font-bold mb-1 uppercase tracking-wider">근무한 시간</span><span className="text-xl font-bold text-blue-600 font-mono">{formatSeconds(stats.totalWorkedSeconds)}</span></div>
         <div className="bg-white p-5 rounded-xl border border-indigo-100 shadow-sm flex flex-col ring-2 ring-indigo-50/50"><span className="text-xs text-indigo-400 font-bold mb-1 uppercase tracking-wider">하루 평균 목표</span><span className="text-xl font-bold text-indigo-600 font-mono">{formatSeconds(stats.avgDailyRequiredSeconds)}</span></div>
       </section>
 
@@ -574,8 +567,19 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => fileInputRef.current?.click()} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-bold hover:bg-gray-50 transition-all flex items-center gap-2 shadow-sm">파일 불러오기</button>
-          <button onClick={handleExportFile} className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all flex items-center gap-2">파일 내보내기</button>
+          {/* 클라우드 액션 버튼이 파일 버튼 위치로 이동됨 */}
+          <button onClick={() => requestCloudAction('load')} disabled={isSyncing} className="px-6 py-2.5 bg-indigo-50 text-indigo-700 rounded-lg font-bold hover:bg-indigo-100 transition-all flex items-center gap-2 border border-indigo-200 disabled:opacity-50">
+            {isSyncing ? '...' : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" /></svg>}
+            불러오기
+          </button>
+          <button onClick={() => requestCloudAction('save')} disabled={isSyncing} className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-100 disabled:opacity-50">
+            {isSyncing ? '...' : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>}
+            백업하기
+          </button>
+
+          {/* 기존 파일 버튼은 기능만 유지하고 숨김 처리 */}
+          <button onClick={() => fileInputRef.current?.click()} className="hidden">파일 불러오기</button>
+          <button onClick={handleExportFile} className="hidden">파일 내보내기</button>
         </div>
       </div>
 
