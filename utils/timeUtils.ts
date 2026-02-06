@@ -84,16 +84,27 @@ export const calculateMonthlyStats = (year: number, month: number, data: Monthly
     const date = new Date(year, month - 1, d);
     const dateStr = toLocalISOString(date);
     const isWork = isWorkingDay(date);
+    const record = data[dateStr];
 
     if (isWork) {
       totalWorkingDays++;
       totalRequiredSeconds += 8 * 3600;
+      
+      // 오늘 포함 미래의 날짜에 대해 남은 근무일수 계산
       if (dateStr >= todayStr) {
-        remainingWorkingDays++;
+        // 근무가 완료되었는지 확인 (출퇴근 기록이 모두 있거나 휴가가 설정된 경우)
+        const isDayDone = record && (
+          (record.checkIn && record.checkOut) || 
+          (record.leaveTypes && record.leaveTypes.some(t => t !== 'none'))
+        );
+        
+        // 완료되지 않은 날만 남은 근무일수로 카운트
+        if (!isDayDone) {
+          remainingWorkingDays++;
+        }
       }
     }
 
-    const record = data[dateStr];
     if (record) {
       // 레거시 데이터 호환성 및 배열 구조 처리 수정
       let leaves: LeaveType[] = [];
