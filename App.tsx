@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { MonthlyData, WorkRecord, LeaveType, MonthlySummary, HolidayMap } from './types';
-import { HOLIDAYS as DEFAULT_HOLIDAYS, LEAVE_HOURS, LEAVE_LABELS } from './constants';
-import { calculateDailyWorkSeconds, calculateMonthlyStats, formatSeconds, isWorkingDay, toLocalISOString } from './utils/timeUtils';
+import { MonthlyData, WorkRecord, LeaveType, MonthlySummary, HolidayMap } from './types.ts';
+import { HOLIDAYS as DEFAULT_HOLIDAYS, LEAVE_HOURS, LEAVE_LABELS } from './constants.ts';
+import { calculateDailyWorkSeconds, calculateMonthlyStats, formatSeconds, isWorkingDay, toLocalISOString } from './utils/timeUtils.ts';
 // Firebase SDK import (ESM)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";

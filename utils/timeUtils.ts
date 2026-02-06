@@ -1,6 +1,6 @@
 
-import { MonthlyData, CalculationResult, LeaveType, HolidayMap } from '../types';
-import { LEAVE_HOURS } from '../constants';
+import { MonthlyData, CalculationResult, LeaveType, HolidayMap } from '../types.ts';
+import { LEAVE_HOURS } from '../constants.ts';
 
 /**
  * Date 객체를 로컬 시간 기준의 "YYYY-MM-DD" 문자열로 변환합니다.
