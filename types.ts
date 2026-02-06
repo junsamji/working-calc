@@ -5,7 +5,7 @@ export interface WorkRecord {
   checkIn: string;  // HH:mm:ss
   checkOut: string; // HH:mm:ss
   leaveTypes: LeaveType[];
-  resultTime?: string; // 변경: 계산된 근무 시간을 HH:mm:ss 문자열로 저장
+  resultTime?: string; // 계산된 근무 시간을 HH:mm:ss 문자열로 저장
 }
 
 export interface MonthlyData {
@@ -34,3 +34,6 @@ export interface MonthlySummary {
   avgTargetTime: string;   // HH:mm:ss
   updatedAt: number;
 }
+
+// 휴일 맵 타입
+export type HolidayMap = Record<string, string>;

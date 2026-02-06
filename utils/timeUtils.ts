@@ -1,6 +1,6 @@
 
-import { MonthlyData, CalculationResult, LeaveType, WorkRecord } from '../types';
-import { HOLIDAYS, LEAVE_HOURS } from '../constants';
+import { MonthlyData, CalculationResult, LeaveType, HolidayMap } from '../types';
+import { LEAVE_HOURS } from '../constants';
 
 /**
  * Date 객체를 로컬 시간 기준의 "YYYY-MM-DD" 문자열로 변환합니다.
@@ -28,11 +28,11 @@ export const parseTimeString = (time: string): number => {
   return h * 3600 + m * 60 + s;
 };
 
-export const isWorkingDay = (date: Date): boolean => {
+export const isWorkingDay = (date: Date, holidays: HolidayMap): boolean => {
   const day = date.getDay();
   if (day === 0 || day === 6) return false;
   const dateStr = toLocalISOString(date);
-  return !HOLIDAYS[dateStr];
+  return !holidays[dateStr];
 };
 
 export const calculateDailyWorkSeconds = (checkInStr: string, checkOutStr: string, leaveTypes: LeaveType[]): number => {
@@ -43,7 +43,7 @@ export const calculateDailyWorkSeconds = (checkInStr: string, checkOutStr: strin
   }
   let workSeconds = Math.min(8, leaveTotalHours) * 3600;
 
-  // 출근과 퇴근 시간이 모두 있어야만 실제 근무 시간을 합산함 (퇴근 전이면 합산 제외)
+  // 출근과 퇴근 시간이 모두 있어야만 실제 근무 시간을 합산함
   if (checkInStr && checkOutStr) {
     let checkIn = parseTimeString(checkInStr);
     let checkOut = parseTimeString(checkOutStr);
@@ -70,7 +70,7 @@ export const calculateDailyWorkSeconds = (checkInStr: string, checkOutStr: strin
   return workSeconds;
 };
 
-export const calculateMonthlyStats = (year: number, month: number, data: MonthlyData): CalculationResult => {
+export const calculateMonthlyStats = (year: number, month: number, data: MonthlyData, holidays: HolidayMap): CalculationResult => {
   const lastDay = new Date(year, month, 0).getDate();
   const today = new Date();
   const todayStr = toLocalISOString(today);
@@ -83,22 +83,19 @@ export const calculateMonthlyStats = (year: number, month: number, data: Monthly
   for (let d = 1; d <= lastDay; d++) {
     const date = new Date(year, month - 1, d);
     const dateStr = toLocalISOString(date);
-    const isWork = isWorkingDay(date);
+    const isWork = isWorkingDay(date, holidays);
     const record = data[dateStr];
 
     if (isWork) {
       totalWorkingDays++;
       totalRequiredSeconds += 8 * 3600;
       
-      // 오늘 포함 미래의 날짜에 대해 남은 근무일수 계산
       if (dateStr >= todayStr) {
-        // 근무가 완료되었는지 확인 (출퇴근 기록이 모두 있거나 휴가가 설정된 경우)
         const isDayDone = record && (
           (record.checkIn && record.checkOut) || 
           (record.leaveTypes && record.leaveTypes.some(t => t !== 'none'))
         );
         
-        // 완료되지 않은 날만 남은 근무일수로 카운트
         if (!isDayDone) {
           remainingWorkingDays++;
         }
@@ -106,7 +103,6 @@ export const calculateMonthlyStats = (year: number, month: number, data: Monthly
     }
 
     if (record) {
-      // 레거시 데이터 호환성 및 배열 구조 처리 수정
       let leaves: LeaveType[] = [];
       if (record.leaveTypes && Array.isArray(record.leaveTypes)) {
         leaves = record.leaveTypes;
