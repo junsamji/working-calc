@@ -11,9 +11,56 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', 'Pretendard', sans-serif; }
-    </style>
 
-<link rel="stylesheet" href="/index.css">
+        /* 사용자 요청 미디어 쿼리: PC 화면에서의 폰트 및 기본 설정 */
+        @media screen and (min-width: 769px) and (max-width: 1480px){
+            html, body { font-size: 14px; }
+        }
+
+        /* 시간 선택기 팝업 반응형 스타일 */
+        .time-picker-popup {
+            position: relative; /* 모바일 기본: 내용을 밀어냄 */
+            margin-top: 0.75rem;
+            width: 100%;
+            z-index: 50;
+        }
+
+        @media screen and (min-width: 769px) {
+            .time-picker-popup {
+                position: absolute; /* PC: 입력창 아래로 띄움 */
+                top: calc(100% + 8px);
+                left: 0;
+                right: 0;
+                height: 0; /* 부모 스크롤 높이에 영향을 주지 않음 */
+                overflow: visible; /* 하지만 내용은 보이게 함 */
+                margin-top: 0;
+                z-index: 100; /* Footer보다 위에 오도록 설정 (Footer는 z-40으로 하향 조정 예정) */
+            }
+            .time-picker-content {
+                background: white;
+                border-radius: 1.5rem;
+                border: 1px solid #e5e7eb;
+                box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.3);
+                padding: 1.25rem;
+                width: 100%;
+            }
+        }
+
+        /* 스크롤바 커스텀 */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e5e7eb;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #d1d5db;
+        }
+    </style>
 <script type="importmap">
 {
   "imports": {
@@ -23,7 +70,6 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/working-calc/assets/index-RX0LzGC8.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-900">
     <div id="root"></div>
