@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { MonthlyData, WorkRecord, LeaveType } from './types';
+import { MonthlyData, WorkRecord, LeaveType, MonthlySummary } from './types';
 import { HOLIDAYS, LEAVE_HOURS, LEAVE_LABELS } from './constants';
-import { calculateMonthlyStats, formatSeconds, isWorkingDay, toLocalISOString } from './utils/timeUtils';
+import { calculateDailyWorkSeconds, calculateMonthlyStats, formatSeconds, isWorkingDay, toLocalISOString } from './utils/timeUtils';
 // Firebase SDK import (ESM)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -100,30 +100,30 @@ const DragSegment: React.FC<DragSegmentProps> = ({ val, index, max, unit, onUpda
   return (
     <div 
       onMouseDown={onMouseDown}
-      className={`flex flex-col items-center justify-between p-2 w-full bg-white rounded-2xl border-2 transition-all select-none cursor-grab active:cursor-grabbing
+      className={`flex flex-col items-center justify-between p-1.5 md:p-1 w-full bg-white rounded-2xl border-2 transition-all select-none cursor-grab active:cursor-grabbing
         ${isDragging ? 'border-blue-500 bg-blue-50 shadow-inner scale-[1.02]' : 'border-gray-50 hover:border-blue-100 hover:bg-gray-50'}`}
     >
       <button 
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => handleAdjust(e, 1)}
-        className={`w-full flex justify-center py-2 rounded-xl transition-all ${isDragging ? 'text-blue-500' : 'text-gray-300 hover:text-blue-500 hover:bg-blue-50 active:scale-90'}`}
+        className={`w-full flex justify-center py-1.5 md:py-0.5 rounded-xl transition-all ${isDragging ? 'text-blue-500' : 'text-gray-300 hover:text-blue-500 hover:bg-blue-50 active:scale-90'}`}
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 15l7-7 7 7" /></svg>
+        <svg className="w-4 h-4 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 15l7-7 7 7" /></svg>
       </button>
 
-      <div className="flex flex-col items-center my-1 pointer-events-none">
-        <span className={`text-2xl font-mono font-bold leading-none ${isDragging ? 'text-blue-600' : 'text-gray-800'}`}>
+      <div className="flex flex-col items-center my-0.5 pointer-events-none">
+        <span className={`text-xl md:text-lg font-mono font-bold leading-none ${isDragging ? 'text-blue-600' : 'text-gray-800'}`}>
           {val || '00'}
         </span>
-        <span className="text-[9px] font-black text-gray-400 uppercase tracking-tighter mt-1">{unit}</span>
+        <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter mt-0.5">{unit}</span>
       </div>
 
       <button 
         onMouseDown={(e) => e.stopPropagation()}
         onClick={(e) => handleAdjust(e, -1)}
-        className={`w-full flex justify-center py-2 rounded-xl transition-all ${isDragging ? 'text-blue-500' : 'text-gray-300 hover:text-blue-500 hover:bg-blue-50 active:scale-90'}`}
+        className={`w-full flex justify-center py-1.5 md:py-0.5 rounded-xl transition-all ${isDragging ? 'text-blue-500' : 'text-gray-300 hover:text-blue-500 hover:bg-blue-50 active:scale-90'}`}
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M19 9l-7 7-7-7" /></svg>
+        <svg className="w-4 h-4 md:w-3.5 md:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M19 9l-7 7-7-7" /></svg>
       </button>
     </div>
   );
@@ -209,7 +209,7 @@ const ScrollTimePicker: React.FC<ScrollTimePickerProps> = ({ value, onChange, la
   const clearAll = () => onChange('');
 
   return (
-    <div className="flex flex-col gap-2.5 relative" ref={containerRef}>
+    <div className="flex flex-col gap-2 relative" ref={containerRef}>
       <div className="flex justify-between items-end px-1">
         <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{label}</label>
         <div className="flex gap-1.5">
@@ -219,28 +219,36 @@ const ScrollTimePicker: React.FC<ScrollTimePickerProps> = ({ value, onChange, la
           <button onClick={onCurrentTime} className="text-[10px] text-blue-600 hover:text-blue-800 font-black bg-blue-50 px-2.5 py-1 rounded-lg transition-all active:scale-95 flex items-center gap-1">현재</button>
         </div>
       </div>
-      <div className={`flex items-center justify-between p-1.5 pl-4 pr-1.5 rounded-2xl border-2 transition-all ${!value ? 'bg-gray-50 border-gray-100' : 'bg-white border-blue-100 shadow-sm'}`}>
-        <div className="flex items-center gap-1 shrink-0">
+      
+      <div className={`flex items-center justify-between p-2 pl-3 pr-2 rounded-2xl border-2 transition-all ${!value ? 'bg-gray-50 border-gray-100' : 'bg-white border-blue-100 shadow-sm'} ${showScrollPicker ? 'ring-4 ring-blue-50 border-blue-400' : ''}`}>
+        <div className="flex items-center gap-0.5 shrink-0">
           <SegmentInput val={h} index={0} max={23} inputRef={hRef} onInputChange={handleInputChange} onInputBlur={handleBlur} />
-          <span className={`text-lg font-bold leading-none mb-1 ${!value ? 'text-gray-200' : 'text-gray-300'}`}>:</span>
+          <span className={`text-lg font-bold leading-none mb-1 mx-0.5 ${!value ? 'text-gray-200' : 'text-gray-300'}`}>:</span>
           <SegmentInput val={m} index={1} max={59} inputRef={mRef} onInputChange={handleInputChange} onInputBlur={handleBlur} />
-          <span className={`text-lg font-bold leading-none mb-1 ${!value ? 'text-gray-200' : 'text-gray-300'}`}>:</span>
+          <span className={`text-lg font-bold leading-none mb-1 mx-0.5 ${!value ? 'text-gray-200' : 'text-gray-300'}`}>:</span>
           <SegmentInput val={s} index={2} max={59} inputRef={sRef} onInputChange={handleInputChange} onInputBlur={handleBlur} />
         </div>
-        <button onClick={() => setShowScrollPicker(!showScrollPicker)} className={`p-2 rounded-xl transition-all border-2 ml-3 ${showScrollPicker ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100' : 'bg-white text-blue-500 border-gray-50 hover:border-blue-200 hover:bg-blue-50'}`}>
+        
+        <button 
+          onClick={() => setShowScrollPicker(!showScrollPicker)} 
+          className={`p-2.5 rounded-xl transition-all border-2 ml-4 ${showScrollPicker ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100' : 'bg-white text-blue-500 border-gray-50 hover:border-blue-200 hover:bg-blue-50'}`}
+        >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </button>
       </div>
+
       {showScrollPicker && (
-        <div className="absolute top-full left-0 right-0 mt-3 p-5 bg-white rounded-3xl border border-gray-100 shadow-2xl z-30 animate-in fade-in slide-in-from-top-4 duration-300 ring-1 ring-black/5">
-          <div className="grid grid-cols-3 gap-2.5">
-            <DragSegment val={h} index={0} max={23} unit="hour" onUpdatePart={updatePart} />
-            <DragSegment val={m} index={1} max={59} unit="min" onUpdatePart={updatePart} />
-            <DragSegment val={s} index={2} max={59} unit="sec" onUpdatePart={updatePart} />
-          </div>
-          <div className="flex items-center justify-center gap-2 mt-4 text-[10px] text-gray-500 font-bold bg-blue-50/30 py-2.5 rounded-2xl border border-blue-50/50">
-            <svg className="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M7 11l5-5m0 0l5 5m-5-5v12" /></svg>
-            숫자를 상하로 드래그하거나 버튼을 클릭하세요
+        <div className="time-picker-popup animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="time-picker-content">
+            <div className="grid grid-cols-3 gap-2.5">
+              <DragSegment val={h} index={0} max={23} unit="hour" onUpdatePart={updatePart} />
+              <DragSegment val={m} index={1} max={59} unit="min" onUpdatePart={updatePart} />
+              <DragSegment val={s} index={2} max={59} unit="sec" onUpdatePart={updatePart} />
+            </div>
+            <div className="flex items-center justify-center gap-2 mt-3 text-[9px] text-gray-500 font-bold bg-blue-50/30 py-2 rounded-xl border border-blue-50/50">
+              <svg className="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M7 11l5-5m0 0l5 5m-5-5v12" /></svg>
+              상하 드래그 조작
+            </div>
           </div>
         </div>
       )}
@@ -260,11 +268,9 @@ const App: React.FC = () => {
   const [alertModal, setAlertModal] = useState<{ show: boolean, message: string }>({ show: false, message: '' });
   const [isSyncing, setIsSyncing] = useState(false);
   
-  // 연/월 선택 모달 상태
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [pickerYear, setPickerYear] = useState(currentYear);
 
-  // 인증 및 유저 코드 상태
   const [userSecretCode, setUserSecretCode] = useState<string | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authInput, setAuthInput] = useState('');
@@ -291,7 +297,6 @@ const App: React.FC = () => {
 
   const showAlert = (message: string) => setAlertModal({ show: true, message });
 
-  // 코드 검증 및 액션 실행 트리거
   const requestCloudAction = (action: 'save' | 'load') => {
     if (userSecretCode === 'jsji') {
       if (action === 'save') executeCloudSave();
@@ -308,7 +313,6 @@ const App: React.FC = () => {
     if (authInput === 'jsji') {
       setUserSecretCode('jsji');
       setShowAuthModal(false);
-      // 지연 실행하여 모달 닫힘과 동시 처리 방지
       setTimeout(() => {
         if (pendingAction === 'save') executeCloudSave();
         else if (pendingAction === 'load') executeCloudLoad();
@@ -319,7 +323,8 @@ const App: React.FC = () => {
     }
   };
 
-  // --- Realtime Database Sync Execution ---
+  const stats = useMemo(() => calculateMonthlyStats(currentYear, currentMonth, monthlyData), [currentYear, currentMonth, monthlyData]);
+
   const executeCloudSave = async () => {
     if (!db) {
       showAlert("Firebase 초기화 중입니다.");
@@ -332,13 +337,26 @@ const App: React.FC = () => {
       const userId = 'jsji'; 
       const dbPath = `users/${userId}/attendance/${docId}`;
       const dbRef = ref(db, dbPath);
+      
+      // 요청에 따른 HH:mm:ss 형식의 요약 데이터 생성
+      const summary: MonthlySummary = {
+        totalWorkingDays: stats.totalWorkingDays,
+        remainingWorkingDays: stats.remainingWorkingDays,
+        requiredTime: formatSeconds(stats.totalRequiredSeconds),
+        workedTime: formatSeconds(stats.totalWorkedSeconds),
+        avgTargetTime: formatSeconds(stats.avgDailyRequiredSeconds),
+        updatedAt: Date.now()
+      };
+      
+      // DB 구조에 맞게 records와 summary를 명시적으로 저장
       await set(dbRef, {
         records: monthlyData,
+        summary: summary,
         updatedAt: Date.now(),
         year: currentYear,
         month: currentMonth
       });
-      showAlert("클라우드 백업이 완료되었습니다.");
+      showAlert("클라우드 백업이 완료되었습니다. (포맷팅된 통계 포함)");
     } catch (e: any) {
       console.error(e);
       showAlert("백업 실패: " + e.message);
@@ -360,8 +378,8 @@ const App: React.FC = () => {
       const dbRef = ref(db);
       const snapshot = await get(child(dbRef, `users/${userId}/attendance/${docId}`));
       if (snapshot.exists()) {
-        const cloudData = snapshot.val().records;
-        setMonthlyData(cloudData);
+        const cloudData = snapshot.val();
+        setMonthlyData(cloudData.records || {});
         showAlert("클라우드 데이터를 성공적으로 불러왔습니다.");
       } else {
         showAlert("해당 월의 클라우드 저장 데이터가 없습니다.");
@@ -422,8 +440,6 @@ const App: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const stats = useMemo(() => calculateMonthlyStats(currentYear, currentMonth, monthlyData), [currentYear, currentMonth, monthlyData]);
-
   const openEditModal = (dateStr: string) => {
     const rawExisting = monthlyData[dateStr];
     const existing: WorkRecord = rawExisting ? JSON.parse(JSON.stringify(rawExisting)) : { checkIn: '', checkOut: '', leaveTypes: ['none'] };
@@ -438,19 +454,35 @@ const App: React.FC = () => {
     if (selectedDate) {
       let finalData = { ...modalData };
       const hasAnyLeave = finalData.leaveTypes && finalData.leaveTypes.some(t => t !== 'none');
+      
+      const normalize = (val: string) => {
+        if (!val) return '';
+        const p = val.split(':');
+        return [(p[0] || '00').padStart(2, '0'), (p[1] || '00').padStart(2, '0'), (p[2] || '00').padStart(2, '0')].join(':');
+      };
+
       if (hasAnyLeave) {
         finalData.checkIn = '';
         finalData.checkOut = '';
+        // 휴가가 있으면 해당 휴가 시간을 HH:mm:ss 형식으로 저장
+        const seconds = calculateDailyWorkSeconds('', '', finalData.leaveTypes);
+        finalData.resultTime = formatSeconds(seconds);
       } else {
-        const normalize = (val: string) => {
-          if (!val) return '';
-          const p = val.split(':');
-          return [(p[0] || '00').padStart(2, '0'), (p[1] || '00').padStart(2, '0'), (p[2] || '00').padStart(2, '0')].join(':');
-        };
         finalData.checkIn = normalize(finalData.checkIn);
         finalData.checkOut = normalize(finalData.checkOut);
+        
+        // 출퇴근 시간이 모두 있을 때 RESULT를 HH:mm:ss 형식으로 저장
+        if (finalData.checkIn && finalData.checkOut) {
+          const seconds = calculateDailyWorkSeconds(finalData.checkIn, finalData.checkOut, finalData.leaveTypes || ['none']);
+          finalData.resultTime = formatSeconds(seconds);
+        } else {
+          finalData.resultTime = '00:00:00';
+        }
       }
-      setMonthlyData({ ...monthlyData, [selectedDate]: finalData });
+      
+      // 상태 업데이트 및 로컬 스토리지 저장을 유도
+      const newMonthlyData = { ...monthlyData, [selectedDate]: finalData };
+      setMonthlyData(newMonthlyData);
       setShowModal(false);
     }
   };
@@ -526,10 +558,17 @@ const App: React.FC = () => {
             {record?.leaveTypes?.some(t => t !== 'none') && (
               <div className="flex flex-wrap gap-0.5">{record.leaveTypes.filter(t => t !== 'none').map(t => <span key={t} className="text-[9px] px-1 py-0.5 bg-green-100 text-green-700 rounded font-bold">{LEAVE_LABELS[t]}</span>)}</div>
             )}
-            {record && (record.checkIn || record.checkOut) && (
+            {record && (record.checkIn || record.checkOut || (record.leaveTypes && record.leaveTypes.some(t => t !== 'none'))) && (
               <div className="text-[10px] text-gray-500 font-mono leading-tight bg-gray-50/50 p-1 rounded">
                 {record.checkIn && <p className="truncate">IN: {record.checkIn}</p>}
                 {record.checkOut ? <p className="truncate">OUT: {record.checkOut}</p> : (record.checkIn && <p className="text-orange-500 font-bold flex items-center gap-1">퇴근 전 <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span></p>)}
+                
+                {/* RESULT 항목 표시: 저장된 resultTime 사용 */}
+                {(record.resultTime && record.resultTime !== '00:00:00') && (
+                  <p className="text-green-600 font-bold border-t border-green-100 mt-1 pt-1 truncate">
+                    RESULT: {record.resultTime}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -555,17 +594,32 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-        <div className="bg-white p-5 rounded-xl border shadow-sm flex flex-col"><span className="text-xs text-green-500 font-bold mb-1 uppercase tracking-wider">총 근무일수</span><span className="text-xl font-bold text-green-600">{stats.totalWorkingDays}일</span></div>
-        <div className="bg-white p-5 rounded-xl border shadow-sm flex flex-col"><span className="text-xs text-orange-400 font-bold mb-1 uppercase tracking-wider">남은 근무일수</span><span className="text-xl font-bold text-orange-600">{stats.remainingWorkingDays}일</span></div>
-        <div className="bg-white p-5 rounded-xl border shadow-sm flex flex-col"><span className="text-xs text-gray-400 font-bold mb-1 uppercase tracking-wider">필수 근무시간</span><span className="text-xl font-bold text-gray-800 font-mono">{Math.floor(stats.totalRequiredSeconds / 3600)}H</span></div>
-        <div className="bg-white p-5 rounded-xl border shadow-sm flex flex-col ring-1 ring-blue-100"><span className="text-xs text-blue-400 font-bold mb-1 uppercase tracking-wider">근무한 시간</span><span className="text-xl font-bold text-blue-600 font-mono">{formatSeconds(stats.totalWorkedSeconds)}</span></div>
-        <div className="bg-white p-5 rounded-xl border border-indigo-100 shadow-sm flex flex-col ring-2 ring-indigo-50/50"><span className="text-xs text-indigo-400 font-bold mb-1 uppercase tracking-wider">하루 평균 목표</span><span className="text-xl font-bold text-indigo-600 font-mono">{formatSeconds(stats.avgDailyRequiredSeconds)}</span></div>
+      {/* 통계 섹션 */}
+      <section className="grid grid-cols-6 lg:grid-cols-5 gap-2 lg:gap-4 mb-8">
+        <div className="col-span-2 lg:col-span-1 bg-white p-3 lg:p-5 rounded-xl border shadow-sm flex flex-col">
+          <span className="text-[10px] lg:text-xs text-green-500 font-bold mb-0.5 lg:mb-1 uppercase tracking-wider">총 근무일수</span>
+          <span className="text-base lg:text-xl font-bold text-green-600">{stats.totalWorkingDays}일</span>
+        </div>
+        <div className="col-span-2 lg:col-span-1 bg-white p-3 lg:p-5 rounded-xl border shadow-sm flex flex-col">
+          <span className="text-[10px] lg:text-xs text-orange-400 font-bold mb-0.5 lg:mb-1 uppercase tracking-wider">남은 근무일수</span>
+          <span className="text-base lg:text-xl font-bold text-orange-600">{stats.remainingWorkingDays}일</span>
+        </div>
+        <div className="col-span-2 lg:col-span-1 bg-white p-3 lg:p-5 rounded-xl border shadow-sm flex flex-col">
+          <span className="text-[10px] lg:text-xs text-gray-400 font-bold mb-0.5 lg:mb-1 uppercase tracking-wider">필수 근무시간</span>
+          <span className="text-base lg:text-xl font-bold text-gray-800 font-mono">{formatSeconds(stats.totalRequiredSeconds)}</span>
+        </div>
+        <div className="col-span-3 lg:col-span-1 bg-white p-3 lg:p-5 rounded-xl border shadow-sm flex flex-col ring-1 ring-blue-100">
+          <span className="text-[10px] lg:text-xs text-blue-400 font-bold mb-0.5 lg:mb-1 uppercase tracking-wider">근무한 시간</span>
+          <span className="text-base lg:text-xl font-bold text-blue-600 font-mono">{formatSeconds(stats.totalWorkedSeconds)}</span>
+        </div>
+        <div className="col-span-3 lg:col-span-1 bg-white p-3 lg:p-5 rounded-xl border border-indigo-100 shadow-sm flex flex-col ring-2 ring-indigo-50/50">
+          <span className="text-[10px] lg:text-xs text-indigo-400 font-bold mb-0.5 lg:mb-1 uppercase tracking-wider">하루 평균 목표</span>
+          <span className="text-base lg:text-xl font-bold text-indigo-600 font-mono">{formatSeconds(stats.avgDailyRequiredSeconds)}</span>
+        </div>
       </section>
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          {/* 연/월 선택 영역: 버튼 형태로 변경 */}
           <div className="flex items-center bg-white rounded-lg border shadow-sm px-1.5 h-12 overflow-hidden">
             <button 
               onClick={openMonthPicker}
@@ -590,8 +644,6 @@ const App: React.FC = () => {
             {isSyncing ? '...' : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>}
             백업하기
           </button>
-          <button onClick={() => fileInputRef.current?.click()} className="hidden">파일 불러오기</button>
-          <button onClick={handleExportFile} className="hidden">파일 내보내기</button>
         </div>
       </div>
 
@@ -604,7 +656,6 @@ const App: React.FC = () => {
         <div className="grid grid-cols-7">{renderCalendar()}</div>
       </div>
 
-      {/* 연/월 선택 팝업 (모바일 친화적) */}
       {showMonthPicker && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
@@ -627,17 +678,10 @@ const App: React.FC = () => {
                 </button>
               ))}
             </div>
-            <div className="p-4 bg-white text-center">
-              <button onClick={() => {
-                const now = new Date();
-                handleSelectMonth(now.getFullYear(), now.getMonth() + 1);
-              }} className="text-sm font-bold text-blue-500 hover:text-blue-700 underline underline-offset-4">이번달로 바로가기</button>
-            </div>
           </div>
         </div>
       )}
 
-      {/* 알림 모달 */}
       {alertModal.show && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[110] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-sm shadow-2xl p-6 text-center">
@@ -647,7 +691,6 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* 유저 고유 코드 입력 모달 */}
       {showAuthModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[120] flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden p-8 space-y-6">
@@ -687,31 +730,51 @@ const App: React.FC = () => {
         </div>
       )}
 
-      {/* 업무 기록 수정 모달 */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-8 border-b flex justify-between items-center bg-white">
-              <h2 className="text-2xl font-bold text-gray-800 tracking-tight">{selectedDate} 기록</h2>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] flex items-center justify-center p-2 sm:p-4">
+          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl flex flex-col max-h-[95vh] md:min-h-[650px] animate-in fade-in zoom-in duration-200">
+            {/* Header */}
+            <div className="p-6 md:p-8 border-b flex justify-between items-center bg-white rounded-t-3xl shrink-0">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800 tracking-tight">{selectedDate} 기록</h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 transition-all p-1.5 hover:bg-gray-50 rounded-full"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
-            <div className="p-8 space-y-10">
-              <div>
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 block">휴가 설정</label>
+            
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 md:space-y-12 custom-scrollbar md:overflow-y-visible">
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">휴가 설정</label>
                 <div className="flex flex-wrap gap-2">
                   {['none', '8H', '6H', '4H', '2H', 'halfday'].map((type) => (
-                    <button key={type} onClick={() => toggleLeave(type as LeaveType)} className={`px-5 py-2.5 text-sm font-bold rounded-xl border-2 transition-all ${modalData.leaveTypes?.includes(type as LeaveType) ? 'bg-blue-600 text-white border-blue-600 shadow-md' : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'}`}>{LEAVE_LABELS[type as LeaveType]}</button>
+                    <button key={type} onClick={() => toggleLeave(type as LeaveType)} className={`px-4 md:px-5 py-2 md:py-2.5 text-xs md:text-sm font-bold rounded-xl border-2 transition-all ${modalData.leaveTypes?.includes(type as LeaveType) ? 'bg-blue-600 text-white border-blue-600 shadow-md scale-105' : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'}`}>{LEAVE_LABELS[type as LeaveType]}</button>
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-12 md:gap-y-20 md:gap-x-10">
                 <ScrollTimePicker label="출근 시간" value={modalData.checkIn} onChange={(val) => setModalData(p => ({ ...p, checkIn: val }))} onCurrentTime={() => setCurrentTime('checkIn')} />
                 <ScrollTimePicker label="퇴근 시간" value={modalData.checkOut} onChange={(val) => setModalData(p => ({ ...p, checkOut: val }))} onCurrentTime={() => setCurrentTime('checkOut')} />
               </div>
+
+              {/* RESULT 표시 섹션: 출퇴근 시간이 모두 있을 때 실시간 계산 결과 노출 */}
+              {modalData.checkIn && modalData.checkOut && (
+                <div className="p-4 bg-green-50 border-2 border-green-100 rounded-2xl flex justify-between items-center animate-in fade-in slide-in-from-bottom-2 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-[10px] md:text-xs font-black text-green-700 uppercase tracking-widest">근무시간 결과</span>
+                  </div>
+                  <span className="text-lg md:text-2xl font-mono font-bold text-green-600 tracking-tighter">
+                    {formatSeconds(calculateDailyWorkSeconds(modalData.checkIn, modalData.checkOut, modalData.leaveTypes || ['none']))}
+                  </span>
+                </div>
+              )}
+
+              <div className="h-12 md:h-0"></div>
             </div>
-            <div className="p-8 pt-4 flex gap-4">
-              <button onClick={() => setShowModal(false)} className="flex-1 py-4 bg-white border-2 border-gray-100 text-gray-500 rounded-2xl font-bold">취소</button>
-              <button onClick={handleSaveDay} className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-100 transition-transform active:scale-95">반영하기</button>
+            
+            {/* Footer */}
+            <div className="p-6 md:p-8 pt-4 flex gap-3 md:gap-4 shrink-0 border-t bg-gray-50/50 rounded-b-3xl z-[40]">
+              <button onClick={() => setShowModal(false)} className="flex-1 py-3 md:py-4 bg-white border-2 border-gray-100 text-gray-500 rounded-2xl font-bold hover:bg-gray-50 transition-all">취소</button>
+              <button onClick={handleSaveDay} className="flex-1 py-3 md:py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95 hover:bg-blue-700">반영하기</button>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ export interface WorkRecord {
   checkIn: string;  // HH:mm:ss
   checkOut: string; // HH:mm:ss
   leaveTypes: LeaveType[];
+  resultTime?: string; // 변경: 계산된 근무 시간을 HH:mm:ss 문자열로 저장
 }
 
 export interface MonthlyData {
@@ -19,7 +20,17 @@ export interface Holiday {
 export interface CalculationResult {
   totalRequiredSeconds: number;
   totalWorkedSeconds: number;
-  totalWorkingDays: number; // 추가: 해당 월의 총 평일/근무일 수
+  totalWorkingDays: number;
   remainingWorkingDays: number;
   avgDailyRequiredSeconds: number;
+}
+
+// Firebase 저장용 포맷팅된 통계 데이터
+export interface MonthlySummary {
+  totalWorkingDays: number;
+  remainingWorkingDays: number;
+  requiredTime: string;    // HH:mm:ss
+  workedTime: string;      // HH:mm:ss
+  avgTargetTime: string;   // HH:mm:ss
+  updatedAt: number;
 }
