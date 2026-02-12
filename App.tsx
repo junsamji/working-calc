@@ -277,11 +277,11 @@ const App: React.FC = () => {
   const stats = useMemo(() => calculateMonthlyStats(currentYear, currentMonth, monthlyData, holidays), [currentYear, currentMonth, monthlyData, holidays]);
 
   const executeCloudSave = async () => {
-    if (!db || userSecretCode !== 'jsji') return;
+    if (!db || userSecretCode !== process.env.AUTH_KEY) return;
     setIsSyncing(true);
     try {
       const docId = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-      const userId = 'jsji'; 
+      const userId = process.env.AUTH_KEY; 
       const dbPath = `users/${userId}/attendance/${docId}`;
       const holidayPath = `users/${userId}/settings/holidays`;
       
@@ -305,7 +305,7 @@ const App: React.FC = () => {
     setIsSyncing(true);
     try {
       const docId = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
-      const userId = 'jsji'; 
+      const userId = process.env.AUTH_KEY; 
       const dbRef = ref(db);
       const snapshot = await get(child(dbRef, `users/${userId}/attendance/${docId}`));
       const holidaySnapshot = await get(child(dbRef, `users/${userId}/settings/holidays`));
@@ -320,8 +320,8 @@ const App: React.FC = () => {
 
   const handleAuthSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (authInput === 'jsji') {
-      setUserSecretCode('jsji');
+    if (authInput === process.env.AUTH_KEY) {
+      setUserSecretCode(process.env.AUTH_KEY);
       setShowAuthModal(false);
       setShowInitialModal(false);
       setTimeout(() => {
@@ -334,7 +334,7 @@ const App: React.FC = () => {
   };
 
   const requestAuth = (action: 'save' | 'load' | 'holiday') => {
-    if (userSecretCode === 'jsji') {
+    if (userSecretCode === process.env.AUTH_KEY) {
       if (action === 'save') executeCloudSave();
       else if (action === 'load') executeCloudLoad();
       else if (action === 'holiday') setShowHolidayModal(true);
@@ -526,7 +526,7 @@ const App: React.FC = () => {
     return range;
   }, [pickerYear]);
 
-  const isLoggedIn = userSecretCode === 'jsji';
+  const isLoggedIn = userSecretCode === process.env.AUTH_KEY;
 
   return (
     <div className="min-h-screen pb-20 px-4 md:px-8 max-w-7xl mx-auto">
@@ -560,7 +560,7 @@ const App: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-800 tracking-tight">근무시간 계산기</h1>
           <div className="flex items-center gap-2 mt-1">
             <p className="text-sm text-gray-500 font-medium">한국 법정 근로시간 및 휴가 기준 • Cloud Sync 지원</p>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter ${userSecretCode === 'jsji' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-400'}`}>{userSecretCode === 'jsji' ? 'Cloud Unlocked' : 'Guest Mode'}</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter ${userSecretCode === process.env.AUTH_KEY ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-400'}`}>{userSecretCode === process.env.AUTH_KEY ? 'Cloud Unlocked' : 'Guest Mode'}</span>
           </div>
         </div>
       </header>
@@ -590,9 +590,8 @@ const App: React.FC = () => {
         {/* Right side: 액션 버튼들 (로그인, 저장, 휴일관리) */}
         <div className="flex flex-wrap items-center gap-3">
           {!isLoggedIn && (
-            <button onClick={() => requestAuth('load')} disabled={isSyncing} className="px-6 py-2.5 h-12 bg-indigo-50 text-indigo-700 rounded-xl font-bold hover:bg-indigo-100 transition-all flex items-center gap-2 border border-indigo-100 disabled:opacity-50 whitespace-nowrap">
-              {isSyncing ? '...' : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 16l-4-4m0 0l4-4m-4 4h12" /></svg>}
-              로그인
+            <button onClick={() => requestAuth('load')} disabled={isSyncing} className="px-6 py-2.5 h-12 bg-indigo-50 text-indigo-700 rounded-xl font-bold hover:bg-indigo-100 transition-all flex items-center justify-center border border-indigo-100 disabled:opacity-50 whitespace-nowrap min-w-[100px]">
+              {isSyncing ? '...' : '로그인'}
             </button>
           )}
 
