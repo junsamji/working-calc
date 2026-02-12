@@ -25,6 +25,13 @@ try {
   console.error("Firebase initialization failed", e);
 }
 
+// --- Helper Functions ---
+const formatConcise = (timeStr: string | undefined): string => {
+  if (!timeStr || timeStr === '00:00:00') return '';
+  const [h, m] = timeStr.split(':').map(Number);
+  return `${h}h${m}m`;
+};
+
 // --- Shared Components ---
 
 interface SegmentInputProps {
@@ -446,23 +453,56 @@ const App: React.FC = () => {
         <div 
           key={dateStr} 
           onClick={() => isHolidayPicker ? handleToggleHoliday(dateStr) : openEditModal(dateStr)} 
-          className={`h-16 md:h-32 border p-2 cursor-pointer transition-all hover:shadow-md flex flex-col justify-between relative overflow-hidden ${isToday ? 'bg-blue-50/50 ring-2 ring-blue-400 ring-inset z-10' : 'bg-white border-gray-100'} ${!isWork ? 'bg-red-50/10' : ''}`}
+          className={`h-16 md:h-32 border p-1 md:p-2 cursor-pointer transition-all hover:shadow-md flex flex-col items-center relative overflow-hidden ${isToday ? 'bg-blue-50/50 ring-2 ring-blue-400 ring-inset z-10' : 'bg-white border-gray-100'} ${!isWork ? 'bg-red-50/10' : ''}`}
         >
           {isToday && <div className="absolute top-0 right-0 px-1.5 py-0.5 bg-blue-500 text-[9px] text-white font-bold rounded-bl-lg">TODAY</div>}
-          <div className="flex flex-col md:flex-row md:justify-between items-start gap-0.5 md:gap-1">
-            <span className={`font-bold ${isToday ? 'text-blue-600' : 'text-gray-700'} ${holidayName || date.getDay() === 0 ? 'text-red-500' : date.getDay() === 6 ? 'text-blue-500' : ''}`}>{d}</span>
-            {holidayName && <span className="text-[8px] md:text-[10px] text-red-400 font-bold md:font-medium truncate block leading-none">{holidayName}</span>}
+          
+          <div className="w-full flex flex-col md:flex-row md:justify-between items-start md:items-center gap-0.5 md:gap-1">
+            <span className={`font-bold md:text-xl lg:text-2xl leading-none ${isToday ? 'text-blue-600' : 'text-gray-700'} ${holidayName || date.getDay() === 0 ? 'text-red-500' : date.getDay() === 6 ? 'text-blue-500' : ''}`}>{d}</span>
+            {holidayName && <span className="text-[8px] md:text-sm lg:text-base text-red-400 font-black truncate block leading-none">{holidayName}</span>}
           </div>
+
           {!isHolidayPicker && (
-            <div className="flex-1 flex flex-col justify-center gap-1">
+            <div className="flex-1 w-full flex flex-col justify-center items-center">
               {record?.leaveTypes?.some(t => t !== 'none') && (
-                <div className="flex flex-wrap gap-0.5">{record.leaveTypes.filter(t => t !== 'none').map(t => <span key={t} className="text-[9px] px-1 py-0.5 bg-green-100 text-green-700 rounded font-bold">{LEAVE_LABELS[t]}</span>)}</div>
+                <div className="flex flex-wrap justify-center gap-0.5 mb-0.5">
+                  {record.leaveTypes.filter(t => t !== 'none').map(t => (
+                    <span key={t} className="text-[9px] md:text-xs lg:text-sm px-1 py-0.5 bg-green-100 text-green-700 rounded font-bold whitespace-nowrap">
+                      {LEAVE_LABELS[t]}
+                    </span>
+                  ))}
+                </div>
               )}
               {record && (record.checkIn || record.checkOut || (record.leaveTypes && record.leaveTypes.some(t => t !== 'none'))) && (
-                <div className="text-[10px] text-gray-500 font-mono leading-tight bg-gray-50/50 p-1 rounded">
-                  {record.checkIn && <p className="truncate">IN: {record.checkIn}</p>}
-                  {record.checkOut ? <p className="truncate">OUT: {record.checkOut}</p> : (record.checkIn && <p className="text-orange-500 font-bold flex items-center gap-1">퇴근 전 <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span></p>)}
-                  {(record.resultTime && record.resultTime !== '00:00:00') && <p className="text-green-600 font-bold border-t border-green-100 mt-1 pt-1 truncate">RESULT: {record.resultTime}</p>}
+                <div className="w-full text-center">
+                  {/* PC 전용 상세 정보 */}
+                  <div className="hidden md:block w-full text-[10px] md:text-sm lg:text-base text-gray-500 font-mono leading-tight bg-gray-50/50 p-1 rounded">
+                    {record.checkIn && <p className="truncate text-center">I: {record.checkIn}</p>}
+                    {record.checkOut ? (
+                      <p className="truncate text-center">O: {record.checkOut}</p>
+                    ) : (
+                      record.checkIn && (
+                        <p className="text-orange-500 font-bold flex items-center justify-center gap-1 text-[10px] md:text-xs lg:text-sm">
+                          퇴근 전 <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span>
+                        </p>
+                      )
+                    )}
+                    {(record.resultTime && record.resultTime !== '00:00:00') && (
+                      <p className="text-green-600 font-black border-t border-green-100 mt-1 pt-1 truncate text-center text-[12px] md:text-lg lg:text-xl">
+                        {record.resultTime}
+                      </p>
+                    )}
+                  </div>
+                  {/* 모바일 전용 요약 정보 - 가독성 및 완벽한 중앙 정렬 */}
+                  <div className="md:hidden w-full flex flex-col items-center justify-center">
+                    {!record.checkOut && record.checkIn ? (
+                       <p className="text-orange-500 font-normal text-[10px] text-center leading-none mt-1 whitespace-nowrap">퇴근 전</p>
+                    ) : (
+                       <p className="text-green-600 font-bold text-[11px] text-center leading-none mt-1 whitespace-nowrap">
+                        {formatConcise(record.resultTime)}
+                       </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -549,7 +589,6 @@ const App: React.FC = () => {
 
         {/* Right side: 액션 버튼들 (로그인, 저장, 휴일관리) */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* 로그인 (인증되지 않았을 때만 표시) - 파스텔톤 컬러 */}
           {!isLoggedIn && (
             <button onClick={() => requestAuth('load')} disabled={isSyncing} className="px-6 py-2.5 h-12 bg-indigo-50 text-indigo-700 rounded-xl font-bold hover:bg-indigo-100 transition-all flex items-center gap-2 border border-indigo-100 disabled:opacity-50 whitespace-nowrap">
               {isSyncing ? '...' : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M11 16l-4-4m0 0l4-4m-4 4h12" /></svg>}
@@ -557,7 +596,6 @@ const App: React.FC = () => {
             </button>
           )}
 
-          {/* 클라우드 저장 (인증되었을 때만 표시) - 파스텔톤 컬러 */}
           {isLoggedIn && (
             <button onClick={() => requestAuth('save')} disabled={isSyncing} className="px-6 py-2.5 h-12 bg-blue-50 text-blue-700 rounded-xl font-bold hover:bg-blue-100 transition-all flex items-center gap-2 border border-blue-100 disabled:opacity-50 whitespace-nowrap">
               {isSyncing ? '...' : <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>}
@@ -565,7 +603,6 @@ const App: React.FC = () => {
             </button>
           )}
 
-          {/* 휴일 관리 (인증되었을 때만 표시) - 파스텔톤 컬러 */}
           {isLoggedIn && (
             <button onClick={() => requestAuth('holiday')} className="px-5 py-3 h-12 bg-rose-50 text-rose-700 rounded-xl font-black text-sm border border-rose-100 hover:bg-rose-100 transition-all flex items-center gap-2 active:scale-95 whitespace-nowrap">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
