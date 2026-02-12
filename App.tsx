@@ -8,7 +8,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB8Ymz20p_I1KUbLuzDxJWYx7Jrz4j_Uek",
+  apiKey: process.env.DB_API_KEY,
   authDomain: "working-calc.firebaseapp.com",
   projectId: "working-calc",
   storageBucket: "working-calc.firebasestorage.app",
@@ -197,7 +197,7 @@ const ScrollTimePicker: React.FC<ScrollTimePickerProps> = ({ value, onChange, la
           <button onClick={onCurrentTime} className="text-[10px] text-blue-600 hover:text-blue-800 font-black bg-blue-50 px-2.5 py-1 rounded-lg transition-all active:scale-95 flex items-center gap-1">현재</button>
         </div>
       </div>
-      <div className={`flex items-center justify-between p-2 pl-3 pr-2 rounded-2xl border-2 transition-all ${!value ? 'bg-gray-50 border-gray-100' : 'bg-white border-blue-100 shadow-sm'} ${showScrollPicker ? 'ring-4 ring-blue-50 border-blue-400' : ''}`}>
+      <div className={`flex items-center justify-between p-2 px-6 rounded-2xl border-2 transition-all ${!value ? 'bg-gray-50 border-gray-100' : 'bg-white border-blue-100 shadow-sm'} ${showScrollPicker ? 'ring-4 ring-blue-50 border-blue-400' : ''}`}>
         <div className="flex items-center gap-0.5 shrink-0">
           <SegmentInput val={h} index={0} max={23} inputRef={hRef} onInputChange={handleInputChange} onInputBlur={handleBlur} />
           <span className={`text-lg font-bold leading-none mb-1 mx-0.5 ${!value ? 'text-gray-200' : 'text-gray-300'}`}>:</span>
@@ -205,7 +205,7 @@ const ScrollTimePicker: React.FC<ScrollTimePickerProps> = ({ value, onChange, la
           <span className={`text-lg font-bold leading-none mb-1 mx-0.5 ${!value ? 'text-gray-200' : 'text-gray-300'}`}>:</span>
           <SegmentInput val={s} index={2} max={59} inputRef={sRef} onInputChange={handleInputChange} onInputBlur={handleBlur} />
         </div>
-        <button onClick={() => setShowScrollPicker(!showScrollPicker)} className={`p-2.5 rounded-xl transition-all border-2 ml-4 ${showScrollPicker ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100' : 'bg-white text-blue-500 border-gray-50 hover:border-blue-200 hover:bg-blue-50'}`}>
+        <button onClick={() => setShowScrollPicker(!showScrollPicker)} className={`p-2.5 rounded-xl transition-all border-2 ml-2 md:ml-4 ${showScrollPicker ? 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100' : 'bg-white text-blue-500 border-gray-50 hover:border-blue-200 hover:bg-blue-50'}`}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
         </button>
       </div>
@@ -792,13 +792,13 @@ const App: React.FC = () => {
       {/* Record Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] flex items-center justify-center p-2 sm:p-4">
-          <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl flex flex-col max-h-[95vh] md:min-h-[650px] animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl flex flex-col max-h-[95vh] md:min-h-[650px] animate-in fade-in zoom-in duration-200">
             <div className="p-6 md:p-8 border-b flex justify-between items-center bg-white rounded-t-3xl shrink-0">
               <h2 className="text-xl md:text-2xl font-bold text-gray-800 tracking-tight whitespace-nowrap">{selectedDate} 기록</h2>
               <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 transition-all p-1.5 hover:bg-gray-50 rounded-full"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg></button>
             </div>
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 md:space-y-12 custom-scrollbar md:overflow-y-visible">
-              <div className="space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 md:space-y-12 custom-scrollbar md:overflow-y-visible">
+              <div className="space-y-4 px-1">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block whitespace-nowrap">휴가 설정</label>
                 <div className="flex flex-wrap gap-2">
                   {['none', '8H', '6H', '4H', '2H', 'halfday'].map((type) => (
@@ -806,7 +806,7 @@ const App: React.FC = () => {
                   ))}
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-12 md:gap-y-20 md:gap-x-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-y-12 md:gap-y-20 md:gap-x-12">
                 <ScrollTimePicker label="출근 시간" value={modalData.checkIn} onChange={(val) => setModalData(p => ({ ...p, checkIn: val }))} onCurrentTime={() => setCurrentTime('checkIn')} />
                 <ScrollTimePicker label="퇴근 시간" value={modalData.checkOut} onChange={(val) => setModalData(p => ({ ...p, checkOut: val }))} onCurrentTime={() => setCurrentTime('checkOut')} />
               </div>
@@ -818,7 +818,7 @@ const App: React.FC = () => {
               )}
             </div>
             <div className="p-6 md:p-8 pt-4 flex gap-3 md:gap-4 shrink-0 border-t bg-gray-50/50 rounded-b-3xl z-[40]">
-              <button onClick={() => setShowModal(false)} className="flex-1 py-3 md:py-4 bg-white border-2 border-gray-100 text-gray-500 rounded-2xl font-bold hover:bg-gray-50 transition-all whitespace-nowrap">취소</button>
+              <button onClick={() => setShowModal(false)} className="flex-1 py-3 md:py-4 bg-white border-2 border-gray-100 text-gray-500 rounded-2xl font-bold hover:bg-gray-50 transition-all whitespace-nowrap">닫기</button>
               <button onClick={handleSaveDay} className="flex-1 py-3 md:py-4 bg-blue-600 text-white rounded-2xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95 hover:bg-blue-700 whitespace-nowrap">반영하기</button>
             </div>
           </div>
