@@ -15,8 +15,8 @@ jobs:
       - run: npm install
       - run: npm run build
         env:
-          DB_API_KEY: ${{ vars.DB_API_KEY }}
-          AUTH_KEY: ${{ vars.AUTH_KEY }}
+          DB_API_KEY: ${{ secrets.DB_API_KEY }}
+          AUTH_KEY: ${{ secrets.AUTH_KEY }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
