@@ -10,8 +10,8 @@ export default defineConfig(({ mode }) => {
       define: {
         'process.env.API_KEY': JSON.stringify(process.env.GEMINI_API_KEY ?? env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(process.env.GEMINI_API_KEY ?? env.GEMINI_API_KEY),
-		'process.env.DB_KEY': JSON.stringify(process.env.DB_API_KEY ?? env.DB_API_KEY),
-		'process.env.AUTH_KEY': JSON.stringify(process.env.AUTH_KEY ?? env.AUTH_KEY)
+		    'process.env.DB_KEY': JSON.stringify(process.env.DB_API_KEY ?? env.DB_API_KEY),
+		    'process.env.AUTH_KEY': JSON.stringify(process.env.AUTH_KEY ?? env.AUTH_KEY)
       },
       resolve: {
         alias: {
