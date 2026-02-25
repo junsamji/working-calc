@@ -8,7 +8,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: process.env.DB_API_KEY,
+  apiKey: "AIzaSyB8Ymz20p_I1KUbLuzDxJWYx7Jrz4j_Uek",
   authDomain: "working-calc.firebaseapp.com",
   projectId: "working-calc",
   storageBucket: "working-calc.firebasestorage.app",
@@ -357,24 +357,17 @@ const App: React.FC = () => {
   const handleSaveDay = () => {
     if (selectedDate) {
       let finalData = { ...modalData };
-      const hasAnyLeave = finalData.leaveTypes && finalData.leaveTypes.some(t => t !== 'none');
-      if (hasAnyLeave) {
-        finalData.checkIn = ''; finalData.checkOut = '';
-        const seconds = calculateDailyWorkSeconds('', '', finalData.leaveTypes);
-        finalData.resultTime = formatSeconds(seconds);
-      } else {
-        const normalize = (val: string) => {
-          if (!val) return '';
-          const p = val.split(':');
-          return [(p[0] || '00').padStart(2, '0'), (p[1] || '00').padStart(2, '0'), (p[2] || '00').padStart(2, '0')].join(':');
-        };
-        finalData.checkIn = normalize(finalData.checkIn);
-        finalData.checkOut = normalize(finalData.checkOut);
-        if (finalData.checkIn && finalData.checkOut) {
-          const seconds = calculateDailyWorkSeconds(finalData.checkIn, finalData.checkOut, finalData.leaveTypes || ['none']);
-          finalData.resultTime = formatSeconds(seconds);
-        } else finalData.resultTime = '00:00:00';
-      }
+      const normalize = (val: string) => {
+        if (!val) return '';
+        const p = val.split(':');
+        return [(p[0] || '00').padStart(2, '0'), (p[1] || '00').padStart(2, '0'), (p[2] || '00').padStart(2, '0')].join(':');
+      };
+      finalData.checkIn = normalize(finalData.checkIn);
+      finalData.checkOut = normalize(finalData.checkOut);
+      
+      const seconds = calculateDailyWorkSeconds(finalData.checkIn, finalData.checkOut, finalData.leaveTypes || ['none']);
+      finalData.resultTime = formatSeconds(seconds);
+      
       setMonthlyData({ ...monthlyData, [selectedDate]: finalData });
       setShowModal(false);
     }
@@ -658,7 +651,7 @@ const App: React.FC = () => {
       {/* Holiday Name/Manage Input Modal */}
       {showHolidayNameInput.show && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-[200] flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl p-8 space-y-6 animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl w-full max-sm shadow-2xl p-8 space-y-6 animate-in zoom-in-95 duration-200">
             <div className="text-center space-y-2">
               <h3 className="text-xl font-black text-gray-800 whitespace-nowrap">
                 {showHolidayNameInput.isEdit ? '휴일 정보 확인' : '휴일 명칭 입력'}
@@ -697,7 +690,7 @@ const App: React.FC = () => {
       {/* Auth Modal */}
       {showAuthModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[250] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden p-8 space-y-6">
+          <div className="bg-white rounded-3xl w-full max-sm shadow-2xl overflow-hidden p-8 space-y-6">
             <div className="text-center space-y-2">
               <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4"><svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></div>
               <h3 className="text-xl font-bold text-gray-800 whitespace-nowrap">보안 코드 인증</h3>
@@ -727,7 +720,7 @@ const App: React.FC = () => {
       {/* Improved Month/Year Picker Modal */}
       {showMonthPicker && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[220] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-3xl w-full max-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b flex justify-between items-center bg-gray-50/30">
               <div className="flex items-center gap-3">
                 <button onClick={() => setPickerYear(y => y - (pickerView === 'month' ? 1 : 12))} className="p-2.5 hover:bg-white rounded-xl text-gray-400 hover:text-blue-500 border border-transparent hover:border-blue-100 transition-all active:scale-90 shadow-sm"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" /></svg></button>
