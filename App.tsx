@@ -433,7 +433,7 @@ const App: React.FC = () => {
     const lastDay = new Date(year, month, 0).getDate();
     const todayStr = toLocalISOString(new Date());
     const days = [];
-    for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${i}`} className="h-16 md:h-32 bg-gray-50 border border-gray-100"></div>);
+    for (let i = 0; i < firstDay; i++) days.push(<div key={`empty-${i}`} className="h-24 md:h-44 bg-gray-50 border border-gray-100"></div>);
     for (let d = 1; d <= lastDay; d++) {
       const date = new Date(year, month - 1, d);
       const dateStr = toLocalISOString(date);
@@ -446,7 +446,7 @@ const App: React.FC = () => {
         <div 
           key={dateStr} 
           onClick={() => isHolidayPicker ? handleToggleHoliday(dateStr) : openEditModal(dateStr)} 
-          className={`h-16 md:h-32 border p-1 md:p-2 cursor-pointer transition-all hover:shadow-md flex flex-col items-center relative overflow-hidden ${isToday ? 'bg-blue-50/50 ring-2 ring-blue-400 ring-inset z-10' : 'bg-white border-gray-100'} ${!isWork ? 'bg-red-50/10' : ''}`}
+          className={`h-24 md:h-44 border p-1 md:p-2 cursor-pointer transition-all hover:shadow-md flex flex-col items-center relative overflow-hidden ${isToday ? 'bg-blue-50/50 ring-2 ring-blue-400 ring-inset z-10' : 'bg-white border-gray-100'} ${!isWork ? 'bg-red-50/10' : ''}`}
         >
           {isToday && <div className="absolute top-0 right-0 px-1.5 py-0.5 bg-blue-500 text-[9px] text-white font-bold rounded-bl-lg">TODAY</div>}
           
@@ -456,45 +456,49 @@ const App: React.FC = () => {
           </div>
 
           {!isHolidayPicker && (
-            <div className="flex-1 w-full flex flex-col justify-center items-center">
-              {record?.leaveTypes?.some(t => t !== 'none') && (
-                <div className="flex flex-wrap justify-center gap-0.5 mb-0.5">
-                  {record.leaveTypes.filter(t => t !== 'none').map(t => (
-                    <span key={t} className="text-[9px] md:text-xs lg:text-sm px-1 py-0.5 bg-green-100 text-green-700 rounded font-bold whitespace-nowrap">
-                      {LEAVE_LABELS[t]}
-                    </span>
-                  ))}
-                </div>
-              )}
-              {record && (record.checkIn || record.checkOut || (record.leaveTypes && record.leaveTypes.some(t => t !== 'none'))) && (
-                <div className="w-full text-center">
-                  {/* PC 전용 상세 정보 */}
-                  <div className="hidden md:block w-full text-[10px] md:text-sm lg:text-base text-gray-500 font-mono leading-tight bg-gray-50/50 p-1 rounded">
+            <div className="flex-1 w-full flex flex-col items-center pb-1">
+              <div className="flex-1 flex flex-col justify-center items-center w-full">
+                {record?.leaveTypes?.some(t => t !== 'none') && (
+                  <div className="flex flex-wrap justify-center gap-0.5 mb-1">
+                    {record.leaveTypes.filter(t => t !== 'none').map(t => (
+                      <span key={t} className="text-[9px] md:text-xs lg:text-sm px-1 py-0.5 bg-green-100 text-green-700 rounded font-bold whitespace-nowrap">
+                        {LEAVE_LABELS[t]}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {record && (record.checkIn || record.checkOut) && (
+                  <div className="hidden md:block w-full text-[10px] md:text-sm lg:text-base text-gray-500 font-mono leading-tight bg-gray-50/50 p-1 rounded mb-1">
                     {record.checkIn && <p className="truncate text-center">I: {record.checkIn}</p>}
                     {record.checkOut ? (
                       <p className="truncate text-center">O: {record.checkOut}</p>
                     ) : (
-                      record.checkIn && (
-                        <p className="text-orange-500 font-bold flex items-center justify-center gap-1 text-[10px] md:text-xs lg:text-sm">
-                          퇴근 전 <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span>
-                        </p>
-                      )
-                    )}
-                    {(record.resultTime && record.resultTime !== '00:00:00') && (
-                      <p className="text-green-600 font-black border-t border-green-100 mt-1 pt-1 truncate text-center text-[12px] md:text-lg lg:text-xl">
-                        {record.resultTime}
+                      <p className="text-orange-500 font-bold flex items-center justify-center gap-1 text-[10px] md:text-xs lg:text-sm">
+                        퇴근 전 <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span>
                       </p>
                     )}
                   </div>
-                  {/* 모바일 전용 요약 정보 - 가독성 및 완벽한 중앙 정렬 */}
-                  <div className="md:hidden w-full flex flex-col items-center justify-center">
-                    {!record.checkOut && record.checkIn ? (
-                       <p className="text-orange-500 font-normal text-[10px] text-center leading-none mt-1 whitespace-nowrap">퇴근 전</p>
-                    ) : (
-                       <p className="text-green-600 font-bold text-[11px] text-center leading-none mt-1 whitespace-nowrap">
-                        {formatConcise(record.resultTime)}
-                       </p>
-                    )}
+                )}
+                {/* 모바일 전용 "퇴근 전" 상태 */}
+                {record && !record.checkOut && record.checkIn && (
+                  <div className="md:hidden">
+                    <p className="text-orange-500 font-normal text-[10px] text-center leading-none whitespace-nowrap">퇴근 전</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 일별 총 근무시간 (최하단 고정) */}
+              {record && (record.resultTime && record.resultTime !== '00:00:00') && (
+                <div className="w-full mt-auto">
+                  <div className="hidden md:block border-t border-green-100 pt-1">
+                    <p className="text-green-600 font-black truncate text-center text-[12px] md:text-lg lg:text-xl">
+                      {record.resultTime}
+                    </p>
+                  </div>
+                  <div className="md:hidden">
+                    <p className="text-green-600 font-bold text-[11px] text-center leading-none whitespace-nowrap">
+                      {formatConcise(record.resultTime)}
+                    </p>
                   </div>
                 </div>
               )}
